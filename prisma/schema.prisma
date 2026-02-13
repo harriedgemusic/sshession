@@ -1,9 +1,6 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -13,20 +10,108 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  name      String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+// SSH Session Configuration
+model SSHSession {
+  id          String   @id @default(cuid())
+  name        String   // Display name for the session
+  host        String   // Hostname or IP address
+  port        Int      @default(22)  // SSH port
+  username    String   // SSH username
+  
+  // Authentication methods
+  authType    String   @default("password")  // "password" or "key"
+  password    String?  // Encrypted password (optional)
+  privateKey  String?  // Private key content (optional)
+  passphrase  String?  // Key passphrase (optional)
+  
+  // Connection settings
+  timeout     Int      @default(30000)  // Connection timeout in ms
+  keepAlive   Boolean  @default(true)
+  
+  // Terminal settings
+  terminalType String  @default("xterm-256color")
+  cols        Int      @default(80)
+  rows        Int      @default(24)
+  fontSize    Int      @default(14)
+  fontFamily  String   @default("Menlo, Monaco, 'Courier New', monospace")
+  theme       String   @default("default")  // Theme name
+  
+  // Metadata
+  lastConnected DateTime?
+  connectionCount Int  @default(0)
+  isFavorite    Boolean @default(false)
+  group         String?  // For organizing sessions
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  history     ConnectionHistory[]
+  
+  @@index([host])
+  @@index([username])
 }
 
-model Post {
-  id        String   @id @default(cuid())
-  title     String
-  content   String?
-  published Boolean  @default(false)
-  authorId  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+// Terminal Themes
+model TerminalTheme {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  displayName String
+  
+  // Colors
+  background  String
+  foreground  String
+  cursor      String
+  cursorAccent String?
+  selection   String?
+  
+  // ANSI Colors (0-15)
+  black       String
+  red         String
+  green       String
+  yellow      String
+  blue        String
+  magenta     String
+  cyan        String
+  white       String
+  brightBlack String
+  brightRed   String
+  brightGreen String
+  brightYellow String
+  brightBlue  String
+  brightMagenta String
+  brightCyan  String
+  brightWhite String
+  
+  isDefault   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+}
+
+// Connection History
+model ConnectionHistory {
+  id          String   @id @default(cuid())
+  sessionId   String
+  session     SSHSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  
+  connectedAt DateTime @default(now())
+  disconnectedAt DateTime?
+  duration    Int?  // Duration in seconds
+  
+  success     Boolean @default(true)
+  errorMessage String?
+}
+
+// SSH Keys Management
+model SSHKey {
+  id          String   @id @default(cuid())
+  name        String   // Friendly name
+  fingerprint String?  // Key fingerprint for identification
+  publicKey   String   // Public key content
+  privateKey  String   // Private key content (encrypted)
+  passphrase  String?  // Passphrase for the key (encrypted)
+  
+  keyType     String   @default("rsa")  // rsa, ed25519, ecdsa, dsa
+  comment     String?  // Key comment
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
