@@ -48,27 +48,25 @@ A modern, feature-rich web-based SSH terminal client built with Next.js, xterm.j
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/ssh-terminal.git
-cd ssh-terminal
+git clone https://github.com/harriedgemusic/sshession.git
+cd sshession
 
 # Install dependencies
 bun install
 
+# Setup environment
+cp .env.example .env
+
 # Initialize database
 bun run db:push
 
-# Start development server
-bun run dev
-```
-
-### Starting SSH Service
-
-The SSH service runs as a separate mini-service:
-
-```bash
-# Start SSH WebSocket service
+# Start SSH WebSocket service (in a separate terminal)
 cd mini-services/ssh-service
 bun install
+bun run dev
+
+# Start development server (in main terminal)
+cd ../..
 bun run dev
 ```
 
